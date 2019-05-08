@@ -1,0 +1,42 @@
+# This is a sample build configuration for JavaScript.
+# Check our guides at https://confluence.atlassian.com/x/14UWN for more examples.
+# Only use spaces to indent your .yml configuration.
+# -----
+# You can specify a custom docker image from Docker Hub as your build environment.
+image: atlassian/default-image:2
+
+pipelines:
+  branches:
+    master:
+      - step:
+          caches:
+            - node
+          script: 
+            - echo "on branch master"
+            - node -v
+            - apt-get update
+            - apt-get -y install zip
+            - npm install
+            - npm run build
+            - zip -r dist.zip dist
+            - du -hs dist
+            - du -hs dist.zip
+            - scp dist.zip root@$FTP_HOST_PROD:$FTP_DIR_PROD
+            - ssh root@$FTP_HOST_PROD 'sh /var/www/admin.mobayar.com/deploy.sh'
+            - echo Finished uploading
+    development:
+          - step:
+              caches:
+                - node
+              script: 
+                - echo "on branch development"
+                - node -v
+                - apt-get update
+                - apt-get -y install zip
+                - npm install
+                - npm run build
+                - zip -r dist.zip dist
+                - du -hs dist.zip
+                - scp dist.zip root@103.93.54.165:/mainData/deploy
+                - ssh root@103.93.54.165 'sh /mainData/deploy/deploy.sh admin'  
+                - echo Finished uploading
